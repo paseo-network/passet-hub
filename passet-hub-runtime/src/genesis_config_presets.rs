@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! # Asset Hub Westend Runtime genesis config presets
+//! # PAsset Hub Runtime genesis config presets
 
 use crate::*;
 use alloc::{vec, vec::Vec};
@@ -21,16 +21,15 @@ use cumulus_primitives_core::ParaId;
 use frame_support::build_struct_json_patch;
 use hex_literal::hex;
 use parachains_common::{AccountId, AuraId};
+use paseo_parachains_constants::{currency::UNITS as PAS, xcm_version::SAFE_XCM_VERSION};
 use sp_core::crypto::UncheckedInto;
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
-use testnet_parachains_constants::westend::{
-	currency::UNITS as WND, xcm_version::SAFE_XCM_VERSION,
-};
 
-const ASSET_HUB_WESTEND_ED: Balance = ExistentialDeposit::get();
+const PASSET_HUB_ED: Balance = ExistentialDeposit::get();
+const PASSET_HUB_PARA_ID: u32 = 1111;
 
-fn asset_hub_westend_genesis(
+fn passet_hub_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	endowment: Balance,
@@ -43,7 +42,7 @@ fn asset_hub_westend_genesis(
 		parachain_info: ParachainInfoConfig { parachain_id: id },
 		collator_selection: CollatorSelectionConfig {
 			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
-			candidacy_bond: ASSET_HUB_WESTEND_ED * 16,
+			candidacy_bond: PASSET_HUB_ED * 16,
 		},
 		session: SessionConfig {
 			keys: invulnerables
@@ -70,7 +69,7 @@ mod preset_names {
 pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 	use preset_names::*;
 	let patch = match id.as_ref() {
-		PRESET_GENESIS => asset_hub_westend_genesis(
+		PRESET_GENESIS => passet_hub_genesis(
 			// initial collators.
 			vec![
 				(
@@ -95,20 +94,20 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 				),
 			],
 			Vec::new(),
-			ASSET_HUB_WESTEND_ED * 4096,
-			1000.into(),
+			PASSET_HUB_ED * 4096,
+			PASSET_HUB_PARA_ID.into(),
 		),
-		sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => asset_hub_westend_genesis(
+		sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => passet_hub_genesis(
 			// initial collators.
 			vec![
 				(Sr25519Keyring::Alice.to_account_id(), Sr25519Keyring::Alice.public().into()),
 				(Sr25519Keyring::Bob.to_account_id(), Sr25519Keyring::Bob.public().into()),
 			],
 			Sr25519Keyring::well_known().map(|k| k.to_account_id()).collect(),
-			WND * 1_000_000,
-			1000.into(),
+			PAS * 1_000_000,
+			PASSET_HUB_PARA_ID.into(),
 		),
-		sp_genesis_builder::DEV_RUNTIME_PRESET => asset_hub_westend_genesis(
+		sp_genesis_builder::DEV_RUNTIME_PRESET => passet_hub_genesis(
 			// initial collators.
 			vec![(Sr25519Keyring::Alice.to_account_id(), Sr25519Keyring::Alice.public().into())],
 			vec![
@@ -117,8 +116,8 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 				Sr25519Keyring::AliceStash.to_account_id(),
 				Sr25519Keyring::BobStash.to_account_id(),
 			],
-			WND * 1_000_000,
-			1000.into(),
+			PAS * 1_000_000,
+			PASSET_HUB_PARA_ID.into(),
 		),
 		_ => return None,
 	};

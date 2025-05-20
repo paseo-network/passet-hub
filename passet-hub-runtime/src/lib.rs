@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! # Asset Hub Westend Runtime
+//! # PAsset Hub Runtime
 //!
-//! Testnet for Asset Hub Polkadot.
+//! Interim Contracts Testnet for Asset Hub Polkadot.
 
 #![cfg_attr(not(feature = "std"), no_std)]
 #![recursion_limit = "256"]
@@ -69,6 +69,9 @@ use parachains_common::{
 	BlockNumber, CollectionId, Hash, Header, ItemId, Nonce, Signature, AVERAGE_ON_INITIALIZE_RATIO,
 	NORMAL_DISPATCH_RATIO,
 };
+use paseo_parachains_constants::{
+	consensus::*, currency::*, fee::WeightToFee, snowbridge::EthereumNetwork, time::*,
+};
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H160, U256};
 use sp_runtime::{
@@ -82,9 +85,6 @@ use sp_runtime::{
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
-use testnet_parachains_constants::westend::{
-	consensus::*, currency::*, fee::WeightToFee, snowbridge::EthereumNetwork, time::*,
-};
 use xcm_config::{
 	ForeignAssetsConvertedConcreteId, LocationToAccountId, PoolAssetsConvertedConcreteId,
 	PoolAssetsPalletLocation, TrustBackedAssetsConvertedConcreteId,
@@ -128,12 +128,10 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	// Note: "westmint" is the legacy name for this chain. It has been renamed to
-	// "asset-hub-westend". Many wallets/tools depend on the `spec_name`, so it remains "westmint"
-	// for the time being. Wallets/tools should update to treat "asset-hub-westend" equally.
-	spec_name: alloc::borrow::Cow::Borrowed("westmint"),
-	impl_name: alloc::borrow::Cow::Borrowed("westmint"),
+	spec_name: alloc::borrow::Cow::Borrowed("passet-hub"),
+	impl_name: alloc::borrow::Cow::Borrowed("passet-hub"),
 	authoring_version: 1,
+	// The spec version from `asset-hub-westend-runtime` is periodically promoted to passet-hub's.
 	spec_version: 1_018_002,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
@@ -250,7 +248,7 @@ impl pallet_transaction_payment::Config for Runtime {
 }
 
 parameter_types! {
-	pub const AssetDeposit: Balance = UNITS / 10; // 1 / 10 WND deposit to create asset
+	pub const AssetDeposit: Balance = UNITS / 10; // 1 / 10 PAS deposit to create asset
 	pub const AssetAccountDeposit: Balance = deposit(1, 16);
 	pub const ApprovalDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const AssetsStringLimit: u32 = 50;

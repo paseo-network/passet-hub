@@ -33,20 +33,18 @@ use frame_support::{
 	},
 };
 use frame_system::EnsureRoot;
+use hex_literal::hex;
 use pallet_xcm::{AuthorizedAliasers, XcmPassthrough};
-use parachains_common::{
-	xcm_config::{
-		AllSiblingSystemParachains, AssetFeeAsExistentialDepositMultiplier,
-		ConcreteAssetFromSystem, RelayOrOtherSystemParachains,
-	},
-	TREASURY_PALLET_ID,
+use parachains_common::xcm_config::{
+	AllSiblingSystemParachains, AssetFeeAsExistentialDepositMultiplier, ConcreteAssetFromSystem,
+	RelayOrOtherSystemParachains,
 };
+use paseo_parachains_constants::{system_parachain::COLLECTIVES_ID, TREASURY_PALLET_ID};
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
 use snowbridge_outbound_queue_primitives::v2::exporter::PausableExporter;
 use sp_runtime::traits::{AccountIdConversion, ConvertInto, TryConvertInto};
-use westend_runtime_constants::system_parachain::COLLECTIVES_ID;
-use xcm::latest::{prelude::*, ROCOCO_GENESIS_HASH, WESTEND_GENESIS_HASH};
+use xcm::latest::{prelude::*, ROCOCO_GENESIS_HASH};
 use xcm_builder::{
 	AccountId32Aliases, AliasChildLocation, AllowExplicitUnpaidExecutionFrom,
 	AllowHrmpNotificationsFromRelayChain, AllowKnownQueryResponses, AllowSubscriptionsFrom,
@@ -63,11 +61,15 @@ use xcm_builder::{
 };
 use xcm_executor::XcmExecutor;
 
+/// The genesis hash of the Paseo testnet. Used to identify it.
+pub const PASEO_GENESIS_HASH: [u8; 32] =
+	hex!["77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"];
+
 parameter_types! {
 	pub const RootLocation: Location = Location::here();
 	pub const WestendLocation: Location = Location::parent();
 	pub const GovernanceLocation: Location = Location::parent();
-	pub const RelayNetwork: Option<NetworkId> = Some(NetworkId::ByGenesis(WESTEND_GENESIS_HASH));
+	pub const RelayNetwork: Option<NetworkId> = Some(NetworkId::ByGenesis(PASEO_GENESIS_HASH));
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation =
 		[GlobalConsensus(RelayNetwork::get().unwrap()), Parachain(ParachainInfo::parachain_id().into())].into();
@@ -84,7 +86,7 @@ parameter_types! {
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub StakingPot: AccountId = CollatorSelection::account_id();
 	pub TreasuryAccount: AccountId = TREASURY_PALLET_ID.into_account_truncating();
-	pub RelayTreasuryLocation: Location = (Parent, PalletInstance(westend_runtime_constants::TREASURY_PALLET_ID)).into();
+	pub RelayTreasuryLocation: Location = (Parent, PalletInstance(TREASURY_PALLET_ID)).into();
 }
 
 /// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
@@ -669,18 +671,18 @@ pub mod bridging {
 	pub mod to_ethereum {
 		use super::*;
 		use assets_common::matching::FromNetwork;
-		use sp_std::collections::btree_set::BTreeSet;
-		use testnet_parachains_constants::westend::snowbridge::{
+		use paseo_parachain_constants::snowbridge::{
 			EthereumNetwork, INBOUND_QUEUE_PALLET_INDEX_V1, INBOUND_QUEUE_PALLET_INDEX_V2,
 		};
+		use sp_std::collections::btree_set::BTreeSet;
 
 		parameter_types! {
 			/// User fee for ERC20 token transfer back to Ethereum.
 			/// (initially was calculated by test `OutboundQueue::calculate_fees` - ETH/WND 1/400 and fee_per_gas 20 GWEI = 2200698000000 + *25%)
 			/// Needs to be more than fee calculated from DefaultFeeConfig FeeConfigRecord in snowbridge:parachain/pallets/outbound-queue/src/lib.rs
 			/// Polkadot uses 10 decimals, Kusama,Rococo,Westend 12 decimals.
-			pub const DefaultBridgeHubEthereumBaseFee: Balance = 3_833_568_200_000;
-			pub const DefaultBridgeHubEthereumBaseFeeV2: Balance = 100_000_000_000;
+			pub const DefaultBridgeHubEthereumBaseFee: Balance = 38_335_682_000;
+			pub const DefaultBridgeHubEthereumBaseFeeV2: Balance = 1_000_000_000;
 			pub storage BridgeHubEthereumBaseFee: Balance = DefaultBridgeHubEthereumBaseFee::get();
 			pub storage BridgeHubEthereumBaseFeeV2: Balance = DefaultBridgeHubEthereumBaseFeeV2::get();
 			pub SiblingBridgeHubWithEthereumInboundQueueV1Instance: Location = Location::new(
