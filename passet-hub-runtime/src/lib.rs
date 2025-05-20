@@ -1124,6 +1124,12 @@ impl pallet_migrations::Config for Runtime {
 	type WeightInfo = weights::pallet_migrations::WeightInfo<Runtime>;
 }
 
+impl pallet_sudo::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type WeightInfo = weights::pallet_sudo::WeightInfo<Runtime>;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -1186,6 +1192,9 @@ construct_runtime!(
 		// TODO: the pallet instance should be removed once all pools have migrated
 		// to the new account IDs.
 		AssetConversionMigration: pallet_asset_conversion_ops = 200,
+
+		// Sudo
+		Sudo: pallet_sudo = 255,
 	}
 );
 
@@ -1472,10 +1481,11 @@ mod benches {
 		[pallet_nfts, Nfts]
 		[pallet_proxy, Proxy]
 		[pallet_session, SessionBench::<Runtime>]
-		[pallet_uniques, Uniques]
-		[pallet_utility, Utility]
+		[pallet_sudo, Sudo]
 		[pallet_timestamp, Timestamp]
 		[pallet_transaction_payment, TransactionPayment]
+		[pallet_uniques, Uniques]
+		[pallet_utility, Utility]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
