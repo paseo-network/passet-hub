@@ -14,6 +14,9 @@
 // limitations under the License.
 
 use super::{
+	constants::{
+		account::POLKADOT_TREASURY_PALLET_ID, system_parachain::COLLECTIVES_ID, TREASURY_PALLET_ID,
+	},
 	AccountId, AllPalletsWithSystem, Assets, Authorship, Balance, Balances, BaseDeliveryFee,
 	CollatorSelection, DepositPerByte, DepositPerItem, FeeAssetId, ForeignAssets,
 	ForeignAssetsInstance, ParachainInfo, ParachainSystem, PolkadotXcm, PoolAssets, Runtime,
@@ -39,7 +42,6 @@ use parachains_common::xcm_config::{
 	AllSiblingSystemParachains, AssetFeeAsExistentialDepositMultiplier, ConcreteAssetFromSystem,
 	RelayOrOtherSystemParachains,
 };
-use paseo_parachains_constants::{system_parachain::COLLECTIVES_ID, TREASURY_PALLET_ID};
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::xcm_sender::ExponentialPrice;
 use snowbridge_outbound_queue_primitives::v2::exporter::PausableExporter;
@@ -85,7 +87,7 @@ parameter_types! {
 		PalletInstance(<Uniques as PalletInfoAccess>::index() as u8).into();
 	pub CheckingAccount: AccountId = PolkadotXcm::check_account();
 	pub StakingPot: AccountId = CollatorSelection::account_id();
-	pub TreasuryAccount: AccountId = TREASURY_PALLET_ID.into_account_truncating();
+	pub TreasuryAccount: AccountId = POLKADOT_TREASURY_PALLET_ID.into_account_truncating();
 	pub RelayTreasuryLocation: Location = (Parent, PalletInstance(TREASURY_PALLET_ID)).into();
 }
 
@@ -670,10 +672,10 @@ pub mod bridging {
 
 	pub mod to_ethereum {
 		use super::*;
-		use assets_common::matching::FromNetwork;
-		use paseo_parachain_constants::snowbridge::{
+		use crate::constants::snowbridge::{
 			EthereumNetwork, INBOUND_QUEUE_PALLET_INDEX_V1, INBOUND_QUEUE_PALLET_INDEX_V2,
 		};
+		use assets_common::matching::FromNetwork;
 		use sp_std::collections::btree_set::BTreeSet;
 
 		parameter_types! {

@@ -17,20 +17,6 @@
 
 //! Tests for the Westmint (Westend Assets Hub) chain.
 
-use asset_hub_westend_runtime::{
-	xcm_config,
-	xcm_config::{
-		bridging, AssetFeeAsExistentialDepositMultiplierFeeCharger, CheckingAccount,
-		ForeignAssetFeeAsExistentialDepositMultiplierFeeCharger, GovernanceLocation,
-		LocationToAccountId, StakingPot, TrustBackedAssetsPalletLocation, WestendLocation,
-		XcmConfig,
-	},
-	AllPalletsWithoutSystem, Assets, Balances, Block, ExistentialDeposit, ForeignAssets,
-	ForeignAssetsInstance, MetadataDepositBase, MetadataDepositPerByte, ParachainSystem,
-	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, SessionKeys,
-	ToRococoXcmRouterInstance, TrustBackedAssetsInstance, XcmpQueue,
-};
-pub use asset_hub_westend_runtime::{AssetConversion, AssetDeposit, CollatorSelection, System};
 use asset_test_utils::{
 	test_cases_over_bridge::TestBridgingConfig, CollatorSessionKey, CollatorSessionKeys,
 	ExtBuilder, GovernanceOrigin, SlotDurations,
@@ -50,11 +36,25 @@ use frame_support::{
 };
 use hex_literal::hex;
 use parachains_common::{AccountId, AssetIdForTrustBackedAssets, AuraId, Balance};
+use paseo_parachains_constants::{consensus::*, currency::UNITS, fee::WeightToFee};
+use passet_hub_runtime::{
+	xcm_config,
+	xcm_config::{
+		bridging, AssetFeeAsExistentialDepositMultiplierFeeCharger, CheckingAccount,
+		ForeignAssetFeeAsExistentialDepositMultiplierFeeCharger, GovernanceLocation,
+		LocationToAccountId, StakingPot, TrustBackedAssetsPalletLocation, WestendLocation,
+		XcmConfig,
+	},
+	AllPalletsWithoutSystem, Assets, Balances, Block, ExistentialDeposit, ForeignAssets,
+	ForeignAssetsInstance, MetadataDepositBase, MetadataDepositPerByte, ParachainSystem,
+	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, SessionKeys,
+	ToRococoXcmRouterInstance, TrustBackedAssetsInstance, XcmpQueue,
+};
+pub use passet_hub_runtime::{AssetConversion, AssetDeposit, CollatorSelection, System};
 use sp_consensus_aura::SlotDuration;
 use sp_core::crypto::Ss58Codec;
 use sp_runtime::{traits::MaybeEquivalence, Either};
 use std::{convert::Into, ops::Mul};
-use testnet_parachains_constants::westend::{consensus::*, currency::UNITS, fee::WeightToFee};
 use xcm::latest::{
 	prelude::{Assets as XcmAssets, *},
 	ROCOCO_GENESIS_HASH,

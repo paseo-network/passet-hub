@@ -21,7 +21,7 @@ fn main() {
 #[cfg(all(feature = "metadata-hash", feature = "std"))]
 fn main() {
 	substrate_wasm_builder::WasmBuilder::init_with_defaults()
-		.enable_metadata_hash("PAS", 10)
+		.enable_metadata_hash("WND", 12)
 		.build();
 }
 

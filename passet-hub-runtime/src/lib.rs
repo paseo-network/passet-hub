@@ -29,6 +29,8 @@ mod genesis_config_presets;
 mod weights;
 pub mod xcm_config;
 
+pub mod constants;
+
 extern crate alloc;
 
 use alloc::{vec, vec::Vec};
@@ -38,6 +40,9 @@ use assets_common::{
 };
 use bp_asset_hub_westend::CreateForeignAssetDeposit;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
+use constants::{
+	consensus::*, currency::*, fee::WeightToFee, snowbridge::EthereumNetwork, time::*,
+};
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, ClaimQueueOffset, CoreSelector, ParaId};
 use frame_support::{
@@ -68,9 +73,6 @@ use parachains_common::{
 	impls::DealWithFees, message_queue::*, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
 	BlockNumber, CollectionId, Hash, Header, ItemId, Nonce, Signature, AVERAGE_ON_INITIALIZE_RATIO,
 	NORMAL_DISPATCH_RATIO,
-};
-use paseo_parachains_constants::{
-	consensus::*, currency::*, fee::WeightToFee, snowbridge::EthereumNetwork, time::*,
 };
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H160, U256};

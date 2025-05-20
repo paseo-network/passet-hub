@@ -17,11 +17,11 @@
 
 use crate::*;
 use alloc::{vec, vec::Vec};
+use constants::{currency::UNITS as PAS, xcm_version::SAFE_XCM_VERSION};
 use cumulus_primitives_core::ParaId;
 use frame_support::build_struct_json_patch;
 use hex_literal::hex;
 use parachains_common::{AccountId, AuraId};
-use paseo_parachains_constants::{currency::UNITS as PAS, xcm_version::SAFE_XCM_VERSION};
 use sp_core::crypto::UncheckedInto;
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;

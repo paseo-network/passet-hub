@@ -14,6 +14,7 @@
 // limitations under the License.
 
 use crate::{
+	constants::snowbridge::{EthereumNetwork, FRONTEND_PALLET_INDEX},
 	weights, xcm_config,
 	xcm_config::{
 		AssetTransactors, LocationToAccountId, TrustBackedAssetsPalletLocation, UniversalLocation,
@@ -25,7 +26,6 @@ use assets_common::{matching::FromSiblingParachain, AssetIdForTrustBackedAssetsC
 use frame_support::{parameter_types, traits::EitherOf};
 use frame_system::EnsureRootWithSuccess;
 use parachains_common::AssetIdForTrustBackedAssets;
-use paseo_parachains_constants::snowbridge::{EthereumNetwork, FRONTEND_PALLET_INDEX};
 use snowbridge_runtime_common::{ForeignAssetOwner, LocalAssetOwner};
 use xcm::prelude::{Asset, InteriorLocation, Location, PalletInstance, Parachain};
 use xcm_executor::XcmExecutor;
@@ -85,7 +85,7 @@ parameter_types! {
 			],
 	);
 	pub storage DeliveryFee: Asset = (Location::parent(), 80_000_000_000u128).into();
-	pub BridgeHubLocation: Location = Location::new(1, [Parachain(paseo_parachains_constants::system_parachain::BRIDGE_HUB_ID)]);
+	pub BridgeHubLocation: Location = Location::new(1, [Parachain(super::constants::system_parachain::BRIDGE_HUB_ID)]);
 	pub SystemFrontendPalletLocation: InteriorLocation = [PalletInstance(FRONTEND_PALLET_INDEX)].into();
 	pub const RootLocation: Location = Location::here();
 }
