@@ -60,6 +60,7 @@ pallet-proxy = { workspace = true }
 pallet-revive = { workspace = true }
 pallet-session = { workspace = true }
 pallet-state-trie-migration = { workspace = true }
+pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
@@ -141,6 +142,7 @@ runtime-benchmarks = [
 	"pallet-proxy/runtime-benchmarks",
 	"pallet-revive/runtime-benchmarks",
 	"pallet-state-trie-migration/runtime-benchmarks",
+	"pallet-sudo/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-transaction-payment/runtime-benchmarks",
 	"pallet-uniques/runtime-benchmarks",
@@ -205,6 +207,7 @@ std = [
 	"pallet-revive/std",
 	"pallet-session/std",
 	"pallet-state-trie-migration/std",
+	"pallet-sudo/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -276,6 +279,7 @@ try-runtime = [
 	"pallet-revive/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-state-trie-migration/try-runtime",
+	"pallet-sudo/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-uniques/try-runtime",

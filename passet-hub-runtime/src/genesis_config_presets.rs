@@ -22,18 +22,21 @@ use cumulus_primitives_core::ParaId;
 use frame_support::build_struct_json_patch;
 use hex_literal::hex;
 use parachains_common::{AccountId, AuraId};
-use sp_core::crypto::UncheckedInto;
+use sp_core::crypto::{Ss58Codec, UncheckedInto};
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 
 const PASSET_HUB_ED: Balance = ExistentialDeposit::get();
 const PASSET_HUB_PARA_ID: u32 = 1111;
-
+fn get_passet_hub_sudo() -> Option<AccountId> {
+	AccountId::from_ss58check("15GWrigTkvLHjE8y3gFEXthb5Ux17v7c7MsW9sgYez1y9XWg").ok()
+}
 fn passet_hub_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
 	endowment: Balance,
 	id: ParaId,
+	sudo_key: Option<AccountId>,
 ) -> serde_json::Value {
 	build_struct_json_patch!(RuntimeGenesisConfig {
 		balances: BalancesConfig {
@@ -56,6 +59,7 @@ fn passet_hub_genesis(
 				})
 				.collect(),
 		},
+		sudo: SudoConfig { key: sudo_key },
 		polkadot_xcm: PolkadotXcmConfig { safe_xcm_version: Some(SAFE_XCM_VERSION) },
 	})
 }
@@ -96,6 +100,7 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 			Vec::new(),
 			PASSET_HUB_ED * 4096,
 			PASSET_HUB_PARA_ID.into(),
+			get_passet_hub_sudo(),
 		),
 		sp_genesis_builder::LOCAL_TESTNET_RUNTIME_PRESET => passet_hub_genesis(
 			// initial collators.
@@ -106,6 +111,7 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 			Sr25519Keyring::well_known().map(|k| k.to_account_id()).collect(),
 			PAS * 1_000_000,
 			PASSET_HUB_PARA_ID.into(),
+			Some(Sr25519Keyring::Alice.to_account_id()),
 		),
 		sp_genesis_builder::DEV_RUNTIME_PRESET => passet_hub_genesis(
 			// initial collators.
@@ -118,6 +124,7 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 			],
 			PAS * 1_000_000,
 			PASSET_HUB_PARA_ID.into(),
+			Some(Sr25519Keyring::Alice.to_account_id()),
 		),
 		_ => return None,
 	};
