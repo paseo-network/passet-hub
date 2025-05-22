@@ -31,6 +31,8 @@ jobs:
         uses: chevdor/srtool-actions@v0.8.0
         with:
           chain: ${{ matrix.runtime }}
+          package: ${{ matrix.runtime }}-runtime
+          runtime_dir: ${{ matrix.runtime }}-runtime
 
       - name: Store srtool digest to disk
         run: |
