@@ -46,7 +46,7 @@ jobs:
         with:
           name: ${{ matrix.runtime }}-runtime-${{ github.sha }}
           path: |
-            ${{ matrix.chain }}*.wasm
+            ${{ matrix.runtime }}*.wasm
             ${{ matrix.runtime }}-srtool-digest.json
 
       # Release published: add artifacts to release
