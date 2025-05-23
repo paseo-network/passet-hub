@@ -39,9 +39,9 @@ jobs:
           echo '${{ steps.srtool_build.outputs.json }}' | jq . > ${{ matrix.runtime }}-srtool-digest.json
 
       # Manual trigger: add artifacts to run
-      # - name: Copy artifacts
-      #   if: github.event_name != 'release'
-      #   run: cp ${{ steps.srtool_build.outputs.wasm_compressed }} .
+      - name: Copy artifacts
+        if: github.event_name != 'release'
+        run: cp `dirname ${{ steps.srtool_build.outputs.wasm }}`/*.wasm ./
 
       - name: Archive Runtime
         if: github.event_name != 'release'
@@ -49,7 +49,7 @@ jobs:
         with:
           name: ${{ matrix.runtime }}-runtime-${{ github.sha }}
           path: |
-            ${{ steps.srtool_build.outputs.wasm_compressed }}
+            *.compressed.wasm
             ${{ matrix.runtime }}-srtool-digest.json
 
       # Release published: add artifacts to release
