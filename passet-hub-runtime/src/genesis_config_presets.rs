@@ -80,7 +80,10 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 				hex!("ba665b203800a42e7bf67dcf77c77fb2ff7ece897fb32d395a074f786a7cbb23")
 					.unchecked_into(),
 			)],
-			Vec::new(),
+			vec![get_passet_hub_sudo().unwrap_or(
+				AccountId::from_ss58check("15GWrigTkvLHjE8y3gFEXthb5Ux17v7c7MsW9sgYez1y9XWg")
+					.expect("valid SS58"),
+			)],
 			PASSET_HUB_ED * 4096,
 			PASSET_HUB_PARA_ID.into(),
 			get_passet_hub_sudo(),
