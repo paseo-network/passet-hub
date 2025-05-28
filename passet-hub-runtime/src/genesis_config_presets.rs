@@ -76,8 +76,8 @@ pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
 		PRESET_GENESIS => passet_hub_genesis(
 			// One collator at genesis.
 			vec![(
-				hex!("ba665b203800a42e7bf67dcf77c77fb2ff7ece897fb32d395a074f786a7cbb23").into(),
-				hex!("ba665b203800a42e7bf67dcf77c77fb2ff7ece897fb32d395a074f786a7cbb23")
+				hex!("f2bc72a4cc195d229a11e65a9456b95b6a4af4f16d89ff54c61406164ffedb69").into(),
+				hex!("f2bc72a4cc195d229a11e65a9456b95b6a4af4f16d89ff54c61406164ffedb69")
 					.unchecked_into(),
 			)],
 			vec![get_passet_hub_sudo().unwrap_or(
