@@ -36,8 +36,10 @@ use frame_support::{
 };
 use hex_literal::hex;
 use parachains_common::{AccountId, AssetIdForTrustBackedAssets, AuraId, Balance};
-use paseo_parachains_constants::{consensus::*, currency::UNITS, fee::WeightToFee};
 use passet_hub_runtime::{
+	constants::{
+		consensus::*, currency::UNITS, fee::WeightToFee, system_parachain::*, PASEO_GENESIS_HASH,
+	},
 	xcm_config,
 	xcm_config::{
 		bridging, AssetFeeAsExistentialDepositMultiplierFeeCharger, CheckingAccount,
@@ -45,20 +47,17 @@ use passet_hub_runtime::{
 		LocationToAccountId, StakingPot, TrustBackedAssetsPalletLocation, WestendLocation,
 		XcmConfig,
 	},
-	AllPalletsWithoutSystem, Assets, Balances, Block, ExistentialDeposit, ForeignAssets,
-	ForeignAssetsInstance, MetadataDepositBase, MetadataDepositPerByte, ParachainSystem,
-	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, SessionKeys,
-	ToRococoXcmRouterInstance, TrustBackedAssetsInstance, XcmpQueue,
+	AllPalletsWithoutSystem, AssetConversion, AssetDeposit, Assets, Balances, Block,
+	CollatorSelection, ExistentialDeposit, ForeignAssets, ForeignAssetsInstance,
+	MetadataDepositBase, MetadataDepositPerByte, ParachainSystem, PolkadotXcm, Runtime,
+	RuntimeCall, RuntimeEvent, RuntimeOrigin, SessionKeys, System, ToRococoXcmRouterInstance,
+	TrustBackedAssetsInstance, XcmpQueue,
 };
-pub use passet_hub_runtime::{AssetConversion, AssetDeposit, CollatorSelection, System};
 use sp_consensus_aura::SlotDuration;
 use sp_core::crypto::Ss58Codec;
 use sp_runtime::{traits::MaybeEquivalence, Either};
 use std::{convert::Into, ops::Mul};
-use xcm::latest::{
-	prelude::{Assets as XcmAssets, *},
-	ROCOCO_GENESIS_HASH,
-};
+use xcm::latest::prelude::{Assets as XcmAssets, *};
 use xcm_builder::WithLatestLocationConverter;
 use xcm_executor::traits::{ConvertLocation, JustTry, WeightTrader};
 use xcm_runtime_apis::conversions::LocationToAccountHelper;
@@ -1230,7 +1229,7 @@ fn receive_reserve_asset_deposited_roc_from_asset_hub_rococo_fees_paid_by_pool_s
 
 	let foreign_asset_id_location = xcm::v5::Location::new(
 		2,
-		[xcm::v5::Junction::GlobalConsensus(xcm::v5::NetworkId::ByGenesis(ROCOCO_GENESIS_HASH))],
+		[xcm::v5::Junction::GlobalConsensus(xcm::v5::NetworkId::ByGenesis(PASEO_GENESIS_HASH))],
 	);
 	let foreign_asset_id_minimum_balance = 1_000_000_000;
 	// sovereign account as foreign asset owner (can be whoever for this scenario)
@@ -1261,7 +1260,7 @@ fn receive_reserve_asset_deposited_roc_from_asset_hub_rococo_fees_paid_by_pool_s
 			},
 			(
 				[PalletInstance(bp_bridge_hub_westend::WITH_BRIDGE_WESTEND_TO_ROCOCO_MESSAGES_PALLET_INDEX)].into(),
-				GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+				GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 				[Parachain(1000)].into()
 			),
 			|| {
@@ -1301,7 +1300,7 @@ fn receive_reserve_asset_deposited_roc_from_asset_hub_rococo_fees_paid_by_suffic
 
 	let foreign_asset_id_location = xcm::v5::Location::new(
 		2,
-		[xcm::v5::Junction::GlobalConsensus(xcm::v5::NetworkId::ByGenesis(ROCOCO_GENESIS_HASH))],
+		[xcm::v5::Junction::GlobalConsensus(xcm::v5::NetworkId::ByGenesis(PASEO_GENESIS_HASH))],
 	);
 	let foreign_asset_id_minimum_balance = 1_000_000_000;
 	// sovereign account as foreign asset owner (can be whoever for this scenario)
@@ -1325,7 +1324,7 @@ fn receive_reserve_asset_deposited_roc_from_asset_hub_rococo_fees_paid_by_suffic
 		bridging_to_asset_hub_rococo,
 		(
 			[PalletInstance(bp_bridge_hub_westend::WITH_BRIDGE_WESTEND_TO_ROCOCO_MESSAGES_PALLET_INDEX)].into(),
-			GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+			GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 			[Parachain(1000)].into()
 		),
 		|| {
@@ -1606,7 +1605,7 @@ fn location_conversion_works() {
 		},
 		TestCase {
 			description: "Describe Rococo Location",
-			location: Location::new(2, [GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH))]),
+			location: Location::new(2, [GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH))]),
 			expected_account_id_str: "5FfpYGrFybJXFsQk7dabr1vEbQ5ycBBu85vrDjPJsF3q4A8P",
 		},
 		TestCase {
@@ -1614,7 +1613,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					AccountId32 { network: None, id: AccountId::from(ALICE).into() },
 				],
 			),
@@ -1625,7 +1624,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					AccountKey20 { network: None, key: [0u8; 20] },
 				],
 			),
@@ -1636,7 +1635,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					Plurality { id: BodyId::Treasury, part: BodyPart::Voice },
 				],
 			),
@@ -1646,7 +1645,7 @@ fn location_conversion_works() {
 			description: "Describe Rococo Parachain Location",
 			location: Location::new(
 				2,
-				[GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)), Parachain(1000)],
+				[GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)), Parachain(1000)],
 			),
 			expected_account_id_str: "5CQeLKM7XC1xNBiQLp26Wa948cudjYRD5VzvaTG3BjnmUvLL",
 		},
@@ -1655,7 +1654,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					Parachain(1000),
 					AccountId32 { network: None, id: AccountId::from(ALICE).into() },
 				],
@@ -1667,7 +1666,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					Parachain(1000),
 					AccountKey20 { network: None, key: [0u8; 20] },
 				],
@@ -1679,7 +1678,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					Parachain(1000),
 					Plurality { id: BodyId::Treasury, part: BodyPart::Voice },
 				],
@@ -1691,7 +1690,7 @@ fn location_conversion_works() {
 			location: Location::new(
 				2,
 				[
-					GlobalConsensus(ByGenesis(ROCOCO_GENESIS_HASH)),
+					GlobalConsensus(ByGenesis(PASEO_GENESIS_HASH)),
 					Parachain(1000),
 					PalletInstance(50),
 					GeneralIndex(1984),
@@ -1739,8 +1738,6 @@ fn xcm_payment_api_works() {
 
 #[test]
 fn governance_authorize_upgrade_works() {
-	use westend_runtime_constants::system_parachain::{ASSET_HUB_ID, COLLECTIVES_ID};
-
 	// no - random para
 	assert_err!(
 		parachains_runtimes_test_utils::test_cases::can_governance_authorize_upgrade::<

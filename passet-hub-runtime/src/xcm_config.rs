@@ -15,7 +15,8 @@
 
 use super::{
 	constants::{
-		account::POLKADOT_TREASURY_PALLET_ID, system_parachain::COLLECTIVES_ID, TREASURY_PALLET_ID,
+		account::POLKADOT_TREASURY_PALLET_ID, system_parachain::COLLECTIVES_ID, PASEO_GENESIS_HASH,
+		TREASURY_PALLET_ID,
 	},
 	AccountId, AllPalletsWithSystem, Assets, Authorship, Balance, Balances, BaseDeliveryFee,
 	CollatorSelection, DepositPerByte, DepositPerItem, FeeAssetId, ForeignAssets,
@@ -62,10 +63,6 @@ use xcm_builder::{
 	WithLatestLocationConverter, WithUniqueTopic, XcmFeeManagerFromComponents,
 };
 use xcm_executor::XcmExecutor;
-
-/// The genesis hash of the Paseo testnet. Used to identify it.
-pub const PASEO_GENESIS_HASH: [u8; 32] =
-	hex!["77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"];
 
 parameter_types! {
 	pub const RootLocation: Location = Location::here();
