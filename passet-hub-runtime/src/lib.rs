@@ -134,7 +134,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_name: alloc::borrow::Cow::Borrowed("passet-hub"),
 	authoring_version: 1,
 	// The spec version from `asset-hub-westend-runtime` is periodically promoted to passet-hub's.
-	spec_version: 1_018_002,
+	spec_version: 1_018_003,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 16,
@@ -1088,7 +1088,7 @@ impl pallet_revive::Config for Runtime {
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type Xcm = pallet_xcm::Pallet<Self>;
-	type ChainId = ConstU64<420_420_421>;
+	type ChainId = ConstU64<420_420_422>;
 	type NativeToEthRatio = ConstU32<1_000_000>; // 10^(18 - 12) Eth is 10^18, Native is 10^12.
 	type EthGasEncoder = ();
 	type FindAuthor = <Runtime as pallet_authorship::Config>::FindAuthor;

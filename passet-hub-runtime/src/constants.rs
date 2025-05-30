@@ -1,3 +1,5 @@
+use hex_literal::hex;
+
 /// Universally recognized accounts.
 pub mod account {
 	use frame_support::PalletId;
@@ -238,3 +240,7 @@ pub mod system_parachain {
 
 /// Paseo Treasury pallet instance.
 pub const TREASURY_PALLET_ID: u8 = 19;
+
+/// The genesis hash of the Paseo testnet. Used to identify it.
+pub const PASEO_GENESIS_HASH: [u8; 32] =
+	hex!["77afd6190f1554ad45fd0d31aee62aacc33c6db0ea801129acb813f913e0764f"];
