@@ -37,7 +37,6 @@ use frame_support::{
 	},
 };
 use frame_system::EnsureRoot;
-use hex_literal::hex;
 use pallet_xcm::{AuthorizedAliasers, XcmPassthrough};
 use parachains_common::xcm_config::{
 	AllSiblingSystemParachains, AssetFeeAsExistentialDepositMultiplier, ConcreteAssetFromSystem,

@@ -66,7 +66,7 @@ use frame_system::{
 	EnsureRoot, EnsureSigned, EnsureSignedBy,
 };
 use pallet_asset_conversion_tx_payment::SwapAssetAdapter;
-use pallet_nfts::{DestroyWitness, PalletFeatures};
+use pallet_nfts::PalletFeatures;
 use pallet_revive::{evm::runtime::EthExtra, AddressMapper};
 use pallet_xcm::EnsureXcm;
 use parachains_common::{
@@ -1112,7 +1112,7 @@ parameter_types! {
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = pallet_migrations::migrations::ResetPallet<Runtime, Revive>;
+	type Migrations = ();
 	// Benchmarks need mocked migrations to guarantee that they succeed.
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
@@ -1261,16 +1261,8 @@ pub type Migrations = (
 	// unreleased
 	InitStorageVersions,
 	// unreleased
-	DeleteUndecodableStorage,
-	// unreleased
 	cumulus_pallet_xcmp_queue::migration::v4::MigrationToV4<Runtime>,
 	cumulus_pallet_xcmp_queue::migration::v5::MigrateV4ToV5<Runtime>,
-	// unreleased
-	pallet_assets::migration::next_asset_id::SetNextAssetId<
-		ConstU32<50_000_000>,
-		Runtime,
-		TrustBackedAssetsInstance,
-	>,
 	pallet_session::migrations::v1::MigrateV0ToV1<
 		Runtime,
 		pallet_session::migrations::v1::InitOffenceSeverity<Runtime>,
@@ -1279,75 +1271,6 @@ pub type Migrations = (
 	pallet_xcm::migration::MigrateToLatestXcmVersion<Runtime>,
 	cumulus_pallet_aura_ext::migration::MigrateV0ToV1<Runtime>,
 );
-
-/// Asset Hub Westend has some undecodable storage, delete it.
-/// See <https://github.com/paritytech/polkadot-sdk/issues/2241> for more info.
-///
-/// First we remove the bad Hold, then the bad NFT collection.
-pub struct DeleteUndecodableStorage;
-
-impl frame_support::traits::OnRuntimeUpgrade for DeleteUndecodableStorage {
-	fn on_runtime_upgrade() -> Weight {
-		use sp_core::crypto::Ss58Codec;
-
-		let mut writes = 0;
-
-		// Remove Holds for account with undecodable hold
-		// Westend doesn't have any HoldReasons implemented yet, so it's safe to just blanket remove
-		// any for this account.
-		match AccountId::from_ss58check("5GCCJthVSwNXRpbeg44gysJUx9vzjdGdfWhioeM7gCg6VyXf") {
-			Ok(a) => {
-				log::info!("Removing holds for account with bad hold");
-				pallet_balances::Holds::<Runtime, ()>::remove(a);
-				writes.saturating_inc();
-			},
-			Err(_) => {
-				log::error!("CleanupUndecodableStorage: Somehow failed to convert valid SS58 address into an AccountId!");
-			},
-		};
-
-		// Destroy undecodable NFT item 1
-		writes.saturating_inc();
-		match pallet_nfts::Pallet::<Runtime, ()>::do_burn(3, 1, |_| Ok(())) {
-			Ok(_) => {
-				log::info!("Destroyed undecodable NFT item 1");
-			},
-			Err(e) => {
-				log::error!("Failed to destroy undecodable NFT item: {:?}", e);
-				return <Runtime as frame_system::Config>::DbWeight::get().reads_writes(0, writes);
-			},
-		}
-
-		// Destroy undecodable NFT item 2
-		writes.saturating_inc();
-		match pallet_nfts::Pallet::<Runtime, ()>::do_burn(3, 2, |_| Ok(())) {
-			Ok(_) => {
-				log::info!("Destroyed undecodable NFT item 2");
-			},
-			Err(e) => {
-				log::error!("Failed to destroy undecodable NFT item: {:?}", e);
-				return <Runtime as frame_system::Config>::DbWeight::get().reads_writes(0, writes);
-			},
-		}
-
-		// Finally, we can destroy the collection
-		writes.saturating_inc();
-		match pallet_nfts::Pallet::<Runtime, ()>::do_destroy_collection(
-			3,
-			DestroyWitness { attributes: 0, item_metadatas: 1, item_configs: 0 },
-			None,
-		) {
-			Ok(_) => {
-				log::info!("Destroyed undecodable NFT collection");
-			},
-			Err(e) => {
-				log::error!("Failed to destroy undecodable NFT collection: {:?}", e);
-			},
-		};
-
-		<Runtime as frame_system::Config>::DbWeight::get().reads_writes(0, writes)
-	}
-}
 
 /// Migration to initialize storage versions for pallets added after genesis.
 ///
