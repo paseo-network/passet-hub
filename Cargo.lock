@@ -4966,7 +4966,7 @@ dependencies = [
 
 [[package]]
 name = "passet-hub-runtime"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "asset-test-utils",
  "assets-common",

@@ -134,7 +134,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_name: alloc::borrow::Cow::Borrowed("passet-hub"),
 	authoring_version: 1,
 	// The spec version from `asset-hub-westend-runtime` is periodically promoted to passet-hub's.
-	spec_version: 1_018_003,
+	spec_version: 1_018_004,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 16,
@@ -1089,7 +1089,7 @@ impl pallet_revive::Config for Runtime {
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type Xcm = pallet_xcm::Pallet<Self>;
 	type ChainId = ConstU64<420_420_422>;
-	type NativeToEthRatio = ConstU32<1_000_000>; // 10^(18 - 12) Eth is 10^18, Native is 10^12.
+	type NativeToEthRatio = ConstU32<100_000_000>; // 10^(18 - 10) Eth is 10^18, Native is 10^10.
 	type EthGasEncoder = ();
 	type FindAuthor = <Runtime as pallet_authorship::Config>::FindAuthor;
 }
@@ -2465,4 +2465,13 @@ fn ensure_key_ss58() {
 	let acc =
 		AccountId::from_ss58check("5F4EbSkZz18X36xhbsjvDNs6NuZ82HyYtq5UiJ1h9SBHJXZD").unwrap();
 	assert_eq!(acc, RootMigController::sorted_members()[0]);
+}
+
+#[test]
+fn ensure_revive_native_to_eth_ratio() {
+	use std::any::TypeId;
+	assert_eq!(
+		TypeId::of::<<Runtime as pallet_revive::Config>::NativeToEthRatio>(),
+		TypeId::of::<ConstU32<100_000_000>>(),
+	);
 }
