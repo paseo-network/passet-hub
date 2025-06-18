@@ -20,7 +20,7 @@ use crate::{
 		AssetTransactors, LocationToAccountId, TrustBackedAssetsPalletLocation, UniversalLocation,
 		XcmConfig,
 	},
-	AccountId, Assets, ForeignAssets, Runtime, RuntimeEvent,
+	AccountId, AssetConversion, Assets, ForeignAssets, Runtime, RuntimeEvent,
 };
 use assets_common::{matching::FromSiblingParachain, AssetIdForTrustBackedAssetsConvert};
 use frame_support::{parameter_types, traits::EitherOf};
@@ -127,5 +127,7 @@ impl snowbridge_pallet_system_frontend::Config for Runtime {
 	type BridgeHubLocation = BridgeHubLocation;
 	type UniversalLocation = UniversalLocation;
 	type PalletLocation = SystemFrontendPalletLocation;
+	type Swap = AssetConversion;
 	type BackendWeightInfo = weights::snowbridge_pallet_system_backend::WeightInfo<Runtime>;
+	type AccountIdConverter = xcm_config::LocationToAccountId;
 }
