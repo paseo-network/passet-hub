@@ -95,13 +95,11 @@ jobs:
             *.compressed.wasm
             ${{ matrix.runtime }}-srtool-digest.json
 
-      # Release published: add artifacts to release
       - name: Prepare release notes
         id: release_notes
         run: |
           {
-          
-            "## Runtime: \`${{ matrix.runtime }}\`"
+            echo "## Runtime: \`${{ matrix.runtime }}\`"
             echo "\`\`\`"
             echo "🏋️ Runtime Size:           ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.size }} bytes"
             echo "🔥 Core Version:           ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.core_version.specName }}-${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.core_version.specVersion }}"
