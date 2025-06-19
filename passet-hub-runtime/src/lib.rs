@@ -133,7 +133,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_name: alloc::borrow::Cow::Borrowed("passet-hub"),
 	authoring_version: 1,
 	// The spec version from `asset-hub-westend-runtime` is periodically promoted to passet-hub's.
-	spec_version: 1_018_004,
+	spec_version: 1_018_005,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 16,
