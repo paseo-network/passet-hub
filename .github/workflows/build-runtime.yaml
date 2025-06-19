@@ -110,9 +110,7 @@ jobs:
             echo "📦 IPFS:                   ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.ipfs_hash }}"
             echo "\`\`\`"
           } > release_notes_${{ matrix.runtime }}.md
-          files: |
-            ${{ steps.srtool_build.outputs.wasm_compressed }}
-            ${{ matrix.runtime }}-srtool-digest.json
+          echo "notes_file=runtime_notes_${{ matrix.runtime }}.md" >> $GITHUB_OUTPUT
 
       - name: Upload release notes
         uses: actions/upload-artifact@v4
