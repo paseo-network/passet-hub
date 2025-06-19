@@ -101,7 +101,7 @@ jobs:
         run: |
           {
           
-            "## Runtime: `${{ matrix.runtime }}\`"
+            "## Runtime: \`${{ matrix.runtime }}\`"
             echo "\`\`\`"
             echo "🏋️ Runtime Size:           ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.size }} bytes"
             echo "🔥 Core Version:           ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.core_version.specName }}-${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.core_version.specVersion }}"
