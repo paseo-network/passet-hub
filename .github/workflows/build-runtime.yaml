@@ -109,7 +109,7 @@ jobs:
             echo "🗳️ Blake2-256 hash:        ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.blake2_256 }}"
             echo "📦 IPFS:                   ${{ fromJSON(steps.srtool_build.outputs.json).runtimes.compressed.subwasm.ipfs_hash }}"
             echo "\`\`\`"
-          } > release_notes_${{ matrix.runtime }}.md
+          } > runtime_notes_${{ matrix.runtime }}.md
           echo "notes_file=runtime_notes_${{ matrix.runtime }}.md" >> $GITHUB_OUTPUT
 
       - name: Upload release notes
