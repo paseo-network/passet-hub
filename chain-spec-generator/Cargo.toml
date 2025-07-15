@@ -1,0 +1,25 @@
+[package]
+name = "chain-spec-generator"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+
+[dependencies]
+clap = { features = ["derive"], workspace = true }
+serde_json = { workspace = true }
+serde = { features = ["derive"], workspace = true }
+
+# Local dependencies
+
+passet-hub-runtime = { path = "../passet-hub-runtime", default-features = false}
+
+# External dependencies
+sc-chain-spec = { workspace = true }
+sc-network = { workspace = true }
+
+[features]
+runtime-benchmarks = [
+    "passet-hub-runtime/runtime-benchmarks",
+]

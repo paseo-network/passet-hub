@@ -13,7 +13,7 @@ repository = "https://github.com/paseo-network/passethub-runtime.git"
 version = "0.1.0"
 
 [workspace]
-members = [ "passet-hub-runtime" ]
+members = [ "passet-hub-runtime", "chain-spec-generator" ]
 resolver = "2"
 
 [workspace.lints.rust]
@@ -53,10 +53,12 @@ while_immutable_condition = { level = "allow", priority = 2 }
 zero-prefixed-literal = { level = "allow", priority = 2 }
 
 [workspace.dependencies]
+clap = { version = "4.5.0" }
 codec = { version = "3.7.5", default-features = false, package = "parity-scale-codec" }
 hex-literal = { version = "0.4.1", default-features = false }
 log = { version = "0.4.22", default-features = false }
 scale-info = { version = "2.11.6", default-features = false }
+serde = { version = "1.0.196" }
 serde_json = { version = "1.0.132", default-features = false }
 smallvec = { version = "1.13.1", default-features = false }
 primitive-types = { version = "0.13.1", default-features = false, features = [ "num-traits" ] }
@@ -120,10 +122,13 @@ polkadot-core-primitives = { git = "https://github.com/paritytech/polkadot-sdk",
 polkadot-parachain-primitives = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 polkadot-primitives = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 polkadot-runtime-common = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
+runtime-parachains = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false, package = "polkadot-runtime-parachains" }
 snowbridge-inbound-queue-primitives = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 snowbridge-outbound-queue-primitives = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 snowbridge-pallet-system-frontend = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 snowbridge-runtime-common = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
+sc-chain-spec = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
+sc-network = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 sp-api = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 sp-block-builder = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
 sp-consensus-aura = { git = "https://github.com/paritytech/polkadot-sdk", rev = "cb629d46ebf00aa65624013a61f9c69ebf02b0b4", default-features = false }
