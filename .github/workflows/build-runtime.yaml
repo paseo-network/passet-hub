@@ -72,6 +72,8 @@ jobs:
       - name: Build ${{ matrix.runtime }} runtime
         id: srtool_build
         uses: chevdor/srtool-actions@v0.8.0
+        env:
+          BUILD_OPTS: "--features on-chain-release-build"
         with:
           chain: ${{ matrix.runtime }}
           package: ${{ matrix.package }}
