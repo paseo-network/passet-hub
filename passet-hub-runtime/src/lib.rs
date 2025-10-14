@@ -40,11 +40,9 @@ use assets_common::{
 };
 use bp_asset_hub_westend::CreateForeignAssetDeposit;
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use constants::{
-	consensus::*, currency::*, fee::WeightToFee, snowbridge::EthereumNetwork, time::*,
-};
+use constants::{consensus::*, currency::*, snowbridge::EthereumNetwork, time::*};
 use cumulus_pallet_parachain_system::RelayNumberMonotonicallyIncreases;
-use cumulus_primitives_core::{AggregateMessageOrigin, ClaimQueueOffset, CoreSelector, ParaId};
+use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
@@ -58,7 +56,7 @@ use frame_support::{
 		AsEnsureOriginWithArg, ConstBool, ConstU128, ConstU32, ConstU64, ConstU8,
 		ConstantStoragePrice, Equals, InstanceFilter, TransformOrigin,
 	},
-	weights::{ConstantMultiplier, Weight, WeightToFee as _},
+	weights::{ConstantMultiplier, Weight},
 	BoundedVec, PalletId,
 };
 use frame_system::{
@@ -66,10 +64,11 @@ use frame_system::{
 	EnsureRoot, EnsureSigned, EnsureSignedBy,
 };
 use pallet_asset_conversion_tx_payment::SwapAssetAdapter;
-use pallet_assets::precompiles::{InlineIdConfig, ERC20};
+use pallet_assets_precompiles::{InlineIdConfig, ERC20};
 use pallet_nfts::PalletFeatures;
 use pallet_revive::evm::runtime::EthExtra;
-use pallet_xcm::{precompiles::XcmPrecompile, EnsureXcm};
+use pallet_xcm::EnsureXcm;
+use pallet_xcm_precompiles::XcmPrecompile;
 use parachains_common::{
 	impls::DealWithFees, message_queue::*, AccountId, AssetIdForTrustBackedAssets, AuraId, Balance,
 	BlockNumber, CollectionId, Hash, Header, ItemId, Nonce, Signature, AVERAGE_ON_INITIALIZE_RATIO,
@@ -81,7 +80,7 @@ use sp_runtime::{
 	generic, impl_opaque_keys,
 	traits::{AccountIdConversion, BlakeTwo256, Block as BlockT, Saturating, Verify},
 	transaction_validity::{TransactionSource, TransactionValidity},
-	ApplyExtrinsicResult, Perbill, Permill, RuntimeDebug,
+	ApplyExtrinsicResult, FixedU128, Perbill, Permill, RuntimeDebug,
 };
 #[cfg(feature = "std")]
 use sp_version::NativeVersion;
@@ -132,7 +131,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: alloc::borrow::Cow::Borrowed("passet-hub"),
 	impl_name: alloc::borrow::Cow::Borrowed("passet-hub"),
 	authoring_version: 1,
-	spec_version: 1_018_008,
+	spec_version: 1_019_000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 16,
@@ -189,6 +188,7 @@ impl frame_system::Config for Runtime {
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 	type MultiBlockMigrator = MultiBlockMigrations;
+	type SingleBlockMigrations = Migrations;
 }
 
 impl cumulus_pallet_weight_reclaim::Config for Runtime {
@@ -235,6 +235,18 @@ parameter_types! {
 	/// Relay Chain `TransactionByteFee` / 10
 	pub const TransactionByteFee: Balance = MILLICENTS;
 }
+
+/// `pallet_revive` requires this specific `WeightToFee` implementation.
+///
+/// This is needed because we make certain assumptions about how weight
+/// is mapped to fees. Enforced at compile time.
+pub type WeightToFee = pallet_revive::evm::fees::BlockRatioFee<
+	// p
+	CENTS,
+	// q
+	{ 100 * ExtrinsicBaseWeight::get().ref_time() as u128 },
+	Runtime,
+>;
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -496,6 +508,7 @@ impl pallet_asset_rewards::Config for Runtime {
 		ConstantStoragePrice<StakePoolCreationDeposit, Balance>,
 	>;
 	type WeightInfo = weights::pallet_asset_rewards::WeightInfo<Runtime>;
+	type BlockNumberProvider = frame_system::Pallet<Runtime>;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = PalletAssetRewardsBenchmarkHelper;
 }
@@ -647,98 +660,98 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				RuntimeCall::Balances { .. }
-					| RuntimeCall::Assets { .. }
-					| RuntimeCall::NftFractionalization { .. }
-					| RuntimeCall::Nfts { .. }
-					| RuntimeCall::Uniques { .. }
+				RuntimeCall::Balances { .. } |
+					RuntimeCall::Assets { .. } |
+					RuntimeCall::NftFractionalization { .. } |
+					RuntimeCall::Nfts { .. } |
+					RuntimeCall::Uniques { .. }
 			),
 			ProxyType::CancelProxy => matches!(
 				c,
-				RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })
-					| RuntimeCall::Utility { .. }
-					| RuntimeCall::Multisig { .. }
+				RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }) |
+					RuntimeCall::Utility { .. } |
+					RuntimeCall::Multisig { .. }
 			),
 			ProxyType::Assets => {
 				matches!(
 					c,
-					RuntimeCall::Assets { .. }
-						| RuntimeCall::Utility { .. }
-						| RuntimeCall::Multisig { .. }
-						| RuntimeCall::NftFractionalization { .. }
-						| RuntimeCall::Nfts { .. }
-						| RuntimeCall::Uniques { .. }
+					RuntimeCall::Assets { .. } |
+						RuntimeCall::Utility { .. } |
+						RuntimeCall::Multisig { .. } |
+						RuntimeCall::NftFractionalization { .. } |
+						RuntimeCall::Nfts { .. } |
+						RuntimeCall::Uniques { .. }
 				)
 			},
 			ProxyType::AssetOwner => matches!(
 				c,
-				RuntimeCall::Assets(TrustBackedAssetsCall::create { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::start_destroy { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::destroy_accounts { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::destroy_approvals { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::finish_destroy { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::transfer_ownership { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::set_team { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::set_metadata { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::clear_metadata { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::set_min_balance { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::create { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::destroy { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::redeposit { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::transfer_ownership { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::set_team { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::set_collection_max_supply { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::lock_collection { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::create { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::destroy { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::transfer_ownership { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::set_team { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::set_metadata { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::set_attribute { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::set_collection_metadata { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::clear_metadata { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::clear_attribute { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::clear_collection_metadata { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::set_collection_max_supply { .. })
-					| RuntimeCall::Utility { .. }
-					| RuntimeCall::Multisig { .. }
+				RuntimeCall::Assets(TrustBackedAssetsCall::create { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::start_destroy { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::destroy_accounts { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::destroy_approvals { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::finish_destroy { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::transfer_ownership { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::set_team { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::set_metadata { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::clear_metadata { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::set_min_balance { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::create { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::destroy { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::redeposit { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::transfer_ownership { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::set_team { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::set_collection_max_supply { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::lock_collection { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::create { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::destroy { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::transfer_ownership { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::set_team { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::set_metadata { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::set_attribute { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::set_collection_metadata { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::clear_metadata { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::clear_attribute { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::clear_collection_metadata { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::set_collection_max_supply { .. }) |
+					RuntimeCall::Utility { .. } |
+					RuntimeCall::Multisig { .. }
 			),
 			ProxyType::AssetManager => matches!(
 				c,
-				RuntimeCall::Assets(TrustBackedAssetsCall::mint { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::burn { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::freeze { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::block { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::thaw { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::freeze_asset { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::thaw_asset { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::touch_other { .. })
-					| RuntimeCall::Assets(TrustBackedAssetsCall::refund_other { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::force_mint { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::update_mint_settings { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::mint_pre_signed { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::set_attributes_pre_signed { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::lock_item_transfer { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::unlock_item_transfer { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::lock_item_properties { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::set_metadata { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::clear_metadata { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::set_collection_metadata { .. })
-					| RuntimeCall::Nfts(pallet_nfts::Call::clear_collection_metadata { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::mint { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::burn { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::freeze { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::thaw { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::freeze_collection { .. })
-					| RuntimeCall::Uniques(pallet_uniques::Call::thaw_collection { .. })
-					| RuntimeCall::Utility { .. }
-					| RuntimeCall::Multisig { .. }
+				RuntimeCall::Assets(TrustBackedAssetsCall::mint { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::burn { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::freeze { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::block { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::thaw { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::freeze_asset { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::thaw_asset { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::touch_other { .. }) |
+					RuntimeCall::Assets(TrustBackedAssetsCall::refund_other { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::force_mint { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::update_mint_settings { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::mint_pre_signed { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::set_attributes_pre_signed { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::lock_item_transfer { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::unlock_item_transfer { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::lock_item_properties { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::set_metadata { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::clear_metadata { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::set_collection_metadata { .. }) |
+					RuntimeCall::Nfts(pallet_nfts::Call::clear_collection_metadata { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::mint { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::burn { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::freeze { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::thaw { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::freeze_collection { .. }) |
+					RuntimeCall::Uniques(pallet_uniques::Call::thaw_collection { .. }) |
+					RuntimeCall::Utility { .. } |
+					RuntimeCall::Multisig { .. }
 			),
 			ProxyType::Collator => matches!(
 				c,
-				RuntimeCall::CollatorSelection { .. }
-					| RuntimeCall::Utility { .. }
-					| RuntimeCall::Multisig { .. }
+				RuntimeCall::CollatorSelection { .. } |
+					RuntimeCall::Utility { .. } |
+					RuntimeCall::Multisig { .. }
 			),
 		}
 	}
@@ -789,7 +802,6 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type ConsensusHook = ConsensusHook;
-	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 	type RelayParentOffset = ConstU32<0>;
 }
 
@@ -1067,16 +1079,19 @@ parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
+		pub const MaxEthExtrinsicWeight: FixedU128 = FixedU128::from_rational(1,2);
 }
 
 impl pallet_revive::Config for Runtime {
+	type Balance = Balance;
 	type Time = Timestamp;
 	type Currency = Balances;
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
+	type RuntimeOrigin = RuntimeOrigin;
+	type DebugEnabled = ConstBool<false>;
 	type DepositPerItem = DepositPerItem;
 	type DepositPerByte = DepositPerByte;
-	type WeightPrice = pallet_transaction_payment::Pallet<Self>;
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
 	type RuntimeMemory = ConstU32<{ 128 * 1024 * 1024 }>;
@@ -1088,14 +1103,15 @@ impl pallet_revive::Config for Runtime {
 	type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
 	type ChainId = ConstU64<420_420_422>;
 	type NativeToEthRatio = ConstU32<100_000_000>; // 10^(18 - 10) Eth is 10^18, Native is 10^10.
-	type EthGasEncoder = ();
+	type FeeInfo = pallet_revive::evm::fees::Info<Address, Signature, EthExtraImpl>;
 	type FindAuthor = <Runtime as pallet_authorship::Config>::FindAuthor;
+	type MaxEthExtrinsicWeight = MaxEthExtrinsicWeight;
 	type Precompiles = (
 		ERC20<Self, InlineIdConfig<0x120>, TrustBackedAssetsInstance>,
 		ERC20<Self, InlineIdConfig<0x320>, PoolAssetsInstance>,
 		XcmPrecompile<Self>,
 	);
-	type AllowEVMBytecode = ConstBool<true>;
+	type AllowEVMBytecode = ConstBool<false>;
 }
 
 parameter_types! {
@@ -1105,7 +1121,7 @@ parameter_types! {
 impl pallet_migrations::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(feature = "runtime-benchmarks"))]
-	type Migrations = pallet_revive::migrations::v2::Migration<Runtime>;
+	type Migrations = ();
 	// Benchmarks need mocked migrations to guarantee that they succeed.
 	#[cfg(feature = "runtime-benchmarks")]
 	type Migrations = pallet_migrations::mock_helpers::MockedMigrations;
@@ -1305,7 +1321,6 @@ pub type Executive = frame_executive::Executive<
 	frame_system::ChainContext<Runtime>,
 	Runtime,
 	AllPalletsWithSystem,
-	Migrations,
 >;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -1417,8 +1432,9 @@ mod benches {
 	);
 }
 
-pallet_revive::impl_runtime_apis_plus_revive!(
+pallet_revive::impl_runtime_apis_plus_revive_traits!(
 	Runtime,
+	Revive,
 	Executive,
 	EthExtraImpl,
 
@@ -1608,7 +1624,7 @@ pallet_revive::impl_runtime_apis_plus_revive!(
 		}
 	}
 
-	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
+impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
 			let native_token = xcm_config::WestendLocation::get();
 			// We accept the native token to pay fees.
@@ -1622,33 +1638,11 @@ pallet_revive::impl_runtime_apis_plus_revive!(
 		}
 
 		fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
-			let native_asset = xcm_config::WestendLocation::get();
-			let fee_in_native = WeightToFee::weight_to_fee(&weight);
-			let latest_asset_id: Result<AssetId, ()> = asset.clone().try_into();
-			match latest_asset_id {
-				Ok(asset_id) if asset_id.0 == native_asset => {
-					// for native asset
-					Ok(fee_in_native)
-				},
-				Ok(asset_id) => {
-					// Try to get current price of `asset_id` in `native_asset`.
-					if let Ok(Some(swapped_in_native)) = assets_common::PoolAdapter::<Runtime>::quote_price_tokens_for_exact_tokens(
-							asset_id.0.clone(),
-							native_asset,
-							fee_in_native,
-							true, // We include the fee.
-						) {
-						Ok(swapped_in_native)
-					} else {
-						log::trace!(target: "xcm::xcm_runtime_apis", "query_weight_to_asset_fee - unhandled asset_id: {asset_id:?}!");
-						Err(XcmPaymentApiError::AssetNotFound)
-					}
-				},
-				Err(_) => {
-					log::trace!(target: "xcm::xcm_runtime_apis", "query_weight_to_asset_fee - failed to convert asset: {asset:?}!");
-					Err(XcmPaymentApiError::VersionedConversionFailed)
-				}
-			}
+			use crate::xcm_config::XcmConfig;
+
+			type Trader = <XcmConfig as xcm_executor::Config>::Trader;
+
+			PolkadotXcm::query_weight_to_asset_fee::<Trader>(weight, asset)
 		}
 
 		fn query_xcm_weight(message: VersionedXcm<()>) -> Result<Weight, XcmPaymentApiError> {
@@ -1659,7 +1653,6 @@ pallet_revive::impl_runtime_apis_plus_revive!(
 			PolkadotXcm::query_delivery_fees(destination, message)
 		}
 	}
-
 	impl xcm_runtime_apis::dry_run::DryRunApi<Block, RuntimeCall, RuntimeEvent, OriginCaller> for Runtime {
 		fn dry_run_call(origin: OriginCaller, call: RuntimeCall, result_xcms_version: XcmVersion) -> Result<CallDryRunEffects<RuntimeEvent>, XcmDryRunApiError> {
 			PolkadotXcm::dry_run_call::<Runtime, xcm_config::XcmRouter, OriginCaller, RuntimeCall>(origin, call, result_xcms_version)
@@ -1778,12 +1771,6 @@ pallet_revive::impl_runtime_apis_plus_revive!(
 	impl pallet_asset_rewards::AssetRewards<Block, Balance> for Runtime {
 		fn pool_creation_cost() -> Balance {
 			StakePoolCreationDeposit::get()
-		}
-	}
-
-	impl cumulus_primitives_core::GetCoreSelectorApi<Block> for Runtime {
-		fn core_selector() -> (CoreSelector, ClaimQueueOffset) {
-			ParachainSystem::core_selector()
 		}
 	}
 

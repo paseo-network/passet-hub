@@ -6,7 +6,7 @@ homepage = { workspace = true }
 license = { workspace = true }
 name = "passet-hub-runtime"
 repository = { workspace = true }
-version = "0.1.4"
+version = { workspace = true }
 
 [lints]
 workspace = true
@@ -45,6 +45,7 @@ pallet-asset-conversion-ops = { workspace = true }
 pallet-asset-conversion-tx-payment = { workspace = true }
 pallet-asset-rewards = { workspace = true }
 pallet-assets = { workspace = true }
+pallet-assets-precompiles = { workspace = true }
 pallet-assets-freezer = { workspace = true }
 pallet-aura = { workspace = true }
 pallet-authorship = { workspace = true }
@@ -67,6 +68,7 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-uniques = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-xcm = { workspace = true }
+pallet-xcm-precompiles = { workspace = true }
 pallet-xcm-benchmarks = { workspace = true }
 pallet-xcm-bridge-hub-router = { workspace = true }
 parachain-info = { workspace = true }
@@ -132,6 +134,7 @@ runtime-benchmarks = [
 	"pallet-asset-rewards/runtime-benchmarks",
 	"pallet-assets-freezer/runtime-benchmarks",
 	"pallet-assets/runtime-benchmarks",
+	"pallet-assets-precompiles/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
@@ -150,6 +153,7 @@ runtime-benchmarks = [
 	"pallet-xcm-benchmarks/runtime-benchmarks",
 	"pallet-xcm-bridge-hub-router/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"pallet-xcm-precompiles/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"polkadot-parachain-primitives/runtime-benchmarks",
 	"polkadot-runtime-common/runtime-benchmarks",
@@ -193,6 +197,7 @@ std = [
 	"pallet-asset-rewards/std",
 	"pallet-assets-freezer/std",
 	"pallet-assets/std",
+	"pallet-assets-precompiles/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
 	"pallet-balances/std",
@@ -216,6 +221,7 @@ std = [
 	"pallet-xcm-benchmarks/std",
 	"pallet-xcm-bridge-hub-router/std",
 	"pallet-xcm/std",
+	"pallet-xcm-precompiles/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"polkadot-core-primitives/std",
@@ -266,6 +272,7 @@ try-runtime = [
 	"pallet-asset-rewards/try-runtime",
 	"pallet-assets-freezer/try-runtime",
 	"pallet-assets/try-runtime",
+	"pallet-assets-precompiles/try-runtime",
 	"pallet-aura/try-runtime",
 	"pallet-authorship/try-runtime",
 	"pallet-balances/try-runtime",
@@ -286,6 +293,7 @@ try-runtime = [
 	"pallet-utility/try-runtime",
 	"pallet-xcm-bridge-hub-router/try-runtime",
 	"pallet-xcm/try-runtime",
+	"pallet-xcm-precompiles/try-runtime",
 	"parachain-info/try-runtime",
 	"polkadot-runtime-common/try-runtime",
 	"snowbridge-pallet-system-frontend/try-runtime",
@@ -299,4 +307,7 @@ metadata-hash = [ "substrate-wasm-builder/metadata-hash" ]
 # A feature that should be enabled when the runtime should be built for on-chain
 # deployment. This will disable stuff that shouldn't be part of the on-chain wasm
 # to make it smaller, like logging for example.
-on-chain-release-build = [ "metadata-hash" ]
+on-chain-release-build = [ 
+	"metadata-hash",
+	"sp-api/disable-logging",
+]
