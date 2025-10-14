@@ -647,7 +647,32 @@ pub enum ProxyType {
 	AssetManager,
 	/// Collator selection proxy. Can execute calls related to collator selection mechanism.
 	Collator,
+
+	// New variants introduced by the Asset Hub Migration from the Relay Chain.
+	/// Allow to do governance.
+	///
+	/// Contains pallets `Treasury`, `Bounties`, `Utility`, `ChildBounties`, `ConvictionVoting`,
+	/// `Referenda` and `Whitelist`.
+	Governance,
+	/// Allows access to staking related calls.
+	///
+	/// Contains the `Staking`, `Session`, `Utility`, `FastUnstake`, `VoterList`, `NominationPools`
+	/// pallets.
+	Staking,
+	/// Allows access to nomination pools related calls.
+	///
+	/// Contains the `NominationPools` and `Utility` pallets.
+	NominationPools,
+	/// To be used with the remote proxy pallet to manage parachain lease auctions on the relay.
+	///
+	/// This variant cannot do anything on Asset Hub itself.
+	Auction,
+	/// To be used with the remote proxy pallet to manage parachain registration on the relay.
+	///
+	/// This variant cannot do anything on Asset Hub itself.
+	ParaRegistration,
 }
+
 impl Default for ProxyType {
 	fn default() -> Self {
 		Self::Any
@@ -658,27 +683,53 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => !matches!(
+			ProxyType::Auction => false, // Only for remote proxy
+			ProxyType::NonTransfer => matches!(
 				c,
-				RuntimeCall::Balances { .. } |
-					RuntimeCall::Assets { .. } |
-					RuntimeCall::NftFractionalization { .. } |
-					RuntimeCall::Nfts { .. } |
-					RuntimeCall::Uniques { .. }
+				RuntimeCall::System(..) |
+				// Not on AH RuntimeCall::Babe(..) |
+				RuntimeCall::Timestamp(..) |
+				// Specifically omitting Indices `transfer`, `force_transfer`
+				// Specifically omitting the entire Balances pallet
+				RuntimeCall::Session(..) |
+				// Not on AH RuntimeCall::Grandpa(..) |
+				// Specifically omitting Vesting `vested_transfer`, and `force_vested_transfer`
+				RuntimeCall::Utility(..) |
+				RuntimeCall::Proxy(..) |
+				RuntimeCall::Multisig(..) /* Not on AH RuntimeCall::Registrar(paras_registrar::Call::register {..}) |
+				                           * Not on AH RuntimeCall::Registrar(paras_registrar::Call::deregister {..}) |
+				                           * Not on AH RuntimeCall::Registrar(paras_registrar::Call::reserve {..}) |
+				                           * Not on AH RuntimeCall::Crowdloan(..) |
+				                           * Not on AH RuntimeCall::Slots(..) |
+				                           * Not on AH RuntimeCall::Auctions(..) |
+				                           * Not on AH RuntimeCall::FastUnstake(..) */
 			),
-			ProxyType::CancelProxy => matches!(
-				c,
-				RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }) |
-					RuntimeCall::Utility { .. } |
-					RuntimeCall::Multisig { .. }
-			),
+			ProxyType::Governance => matches!(c, RuntimeCall::Utility(..)),
+			ProxyType::Staking => {
+				matches!(
+					c,
+					RuntimeCall::Session(..) | RuntimeCall::Utility(..) /* Not on AH RuntimeCall::FastUnstake(..) | */
+				)
+			},
+			ProxyType::NominationPools => {
+				matches!(c, RuntimeCall::Utility(..))
+			},
+			ProxyType::CancelProxy => {
+				matches!(
+					c,
+					RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }) |
+						RuntimeCall::Utility { .. } |
+						RuntimeCall::Multisig { .. }
+				)
+			},
+			ProxyType::ParaRegistration => false, // Only for remote proxy
+			// AH specific proxy types that are not on the Relay:
 			ProxyType::Assets => {
 				matches!(
 					c,
 					RuntimeCall::Assets { .. } |
 						RuntimeCall::Utility { .. } |
 						RuntimeCall::Multisig { .. } |
-						RuntimeCall::NftFractionalization { .. } |
 						RuntimeCall::Nfts { .. } |
 						RuntimeCall::Uniques { .. }
 				)
@@ -763,7 +814,11 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			(_, ProxyType::Any) => false,
 			(ProxyType::Assets, ProxyType::AssetOwner) => true,
 			(ProxyType::Assets, ProxyType::AssetManager) => true,
-			(ProxyType::NonTransfer, ProxyType::Collator) => true,
+			(
+				ProxyType::NonTransfer,
+				ProxyType::Assets | ProxyType::AssetOwner | ProxyType::AssetManager,
+			) => false,
+			(ProxyType::NonTransfer, _) => true,
 			_ => false,
 		}
 	}
@@ -2297,4 +2352,24 @@ fn ensure_revive_native_to_eth_ratio() {
 		TypeId::of::<<Runtime as pallet_revive::Config>::NativeToEthRatio>(),
 		TypeId::of::<ConstU32<100_000_000>>(),
 	);
+}
+
+#[test]
+fn proxy_type_is_superset_works() {
+	// Assets IS supertype of AssetOwner and AssetManager
+	assert!(ProxyType::Assets.is_superset(&ProxyType::AssetOwner));
+	assert!(ProxyType::Assets.is_superset(&ProxyType::AssetManager));
+	// NonTransfer is NOT supertype of Any, Assets, AssetOwner and AssetManager
+	assert!(!ProxyType::NonTransfer.is_superset(&ProxyType::Any));
+	assert!(!ProxyType::NonTransfer.is_superset(&ProxyType::Assets));
+	assert!(!ProxyType::NonTransfer.is_superset(&ProxyType::AssetOwner));
+	assert!(!ProxyType::NonTransfer.is_superset(&ProxyType::AssetManager));
+	// NonTransfer is supertype of remaining stuff
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::CancelProxy));
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::Collator));
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::Governance));
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::Staking));
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::NominationPools));
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::Auction));
+	assert!(ProxyType::NonTransfer.is_superset(&ProxyType::ParaRegistration));
 }
