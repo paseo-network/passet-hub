@@ -1133,6 +1133,7 @@ impl pallet_xcm_bridge_hub_router::Config<ToRococoXcmRouterInstance> for Runtime
 parameter_types! {
 	pub const DepositPerItem: Balance = deposit(1, 0);
 	pub const DepositPerByte: Balance = deposit(0, 1);
+	pub const DepositPerChildTrieItem: Balance = deposit(1, 0) / 100;
 	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
 		pub const MaxEthExtrinsicWeight: FixedU128 = FixedU128::from_rational(1,2);
 }
@@ -1146,6 +1147,7 @@ impl pallet_revive::Config for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type DebugEnabled = ConstBool<false>;
 	type DepositPerItem = DepositPerItem;
+	type DepositPerChildTrieItem = DepositPerChildTrieItem;
 	type DepositPerByte = DepositPerByte;
 	type WeightInfo = pallet_revive::weights::SubstrateWeight<Self>;
 	type AddressMapper = pallet_revive::AccountId32Mapper<Self>;
@@ -1166,7 +1168,7 @@ impl pallet_revive::Config for Runtime {
 		ERC20<Self, InlineIdConfig<0x320>, PoolAssetsInstance>,
 		XcmPrecompile<Self>,
 	);
-	type AllowEVMBytecode = ConstBool<false>;
+	type AllowEVMBytecode = ConstBool<true>;
 }
 
 parameter_types! {
