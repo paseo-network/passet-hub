@@ -73,24 +73,15 @@ pub mod currency {
 
 	/// The default existential deposit for system chains. 1/10th of the Relay Chain's existential
 	/// deposit. Individual system parachains may modify this in special cases.
-	pub const EXISTENTIAL_DEPOSIT: Balance = PASEO_EXISTENTIAL_DEPOSIT / 10;
+	pub const EXISTENTIAL_DEPOSIT: Balance = 1 * CENTS;
 
-	/// One "DOT" that a UI would show a user.
 	pub const UNITS: Balance = 10_000_000_000;
-	pub const DOLLARS: Balance = UNITS; // 10_000_000_000
-	pub const GRAND: Balance = DOLLARS * 1_000; // 10_000_000_000_000
-	pub const CENTS: Balance = DOLLARS / 100; // 100_000_000
-	pub const MILLICENTS: Balance = CENTS / 1_000; // 100_000
+	pub const CENTS: Balance = UNITS / 100;
+	pub const MILLICENTS: Balance = CENTS / 1_000;
+	pub const GRAND: Balance = CENTS * 100_000;
 
-	// Paseo deposit function.
-	const fn paseo_deposit(items: u32, bytes: u32) -> Balance {
-		items as Balance * 20 * DOLLARS + (bytes as Balance) * 100 * MILLICENTS
-	}
-
-	/// Deposit rate for stored data. 1/100th of the Relay Chain's deposit rate. `items` is the
-	/// number of keys in storage and `bytes` is the size of the value.
 	pub const fn deposit(items: u32, bytes: u32) -> Balance {
-		paseo_deposit(items, bytes) / 100
+		items as Balance * 10 * CENTS + (bytes as Balance) * 5 * MILLICENTS
 	}
 }
 
