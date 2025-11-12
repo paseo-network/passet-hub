@@ -144,8 +144,8 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: alloc::borrow::Cow::Borrowed("passet-hub"),
-	impl_name: alloc::borrow::Cow::Borrowed("passet-hub"),
+	spec_name: alloc::borrow::Cow::Borrowed("passet-hub-elastic"),
+	impl_name: alloc::borrow::Cow::Borrowed("passet-hub-elastic"),
 	authoring_version: 1,
 	spec_version: 1_019_001,
 	impl_version: 0,
