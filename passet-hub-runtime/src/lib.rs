@@ -1627,7 +1627,7 @@ pallet_revive::impl_runtime_apis_plus_revive_traits!(
 		}
 	}
 
-		impl frame_support::view_functions::runtime_api::RuntimeViewFunction<Block> for Runtime {
+	impl frame_support::view_functions::runtime_api::RuntimeViewFunction<Block> for Runtime {
 		fn execute_view_function(
 			id: frame_support::view_functions::ViewFunctionId,
 			input: Vec<u8>
@@ -1726,7 +1726,7 @@ pallet_revive::impl_runtime_apis_plus_revive_traits!(
 		}
 	}
 
-impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
+	impl xcm_runtime_apis::fees::XcmPaymentApi<Block> for Runtime {
 		fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
 			let native_token = xcm_config::WestendLocation::get();
 			// We accept the native token to pay fees.
