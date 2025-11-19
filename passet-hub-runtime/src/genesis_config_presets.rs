@@ -27,7 +27,7 @@ use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 
 const PASSET_HUB_ED: Balance = ExistentialDeposit::get();
-const PASSET_HUB_PARA_ID: u32 = 2048;
+const PASSET_HUB_PARA_ID: u32 = 5066;
 
 fn get_passet_hub_sudo() -> Option<AccountId> {
 	AccountId::from_ss58check("15GWrigTkvLHjE8y3gFEXthb5Ux17v7c7MsW9sgYez1y9XWg").ok()
