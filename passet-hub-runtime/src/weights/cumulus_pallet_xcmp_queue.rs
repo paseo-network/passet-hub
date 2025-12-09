@@ -195,15 +195,12 @@ impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightIn
 			.saturating_add(T::DbWeight::get().reads(1))
 			.saturating_add(T::DbWeight::get().writes(1))
 	}
-	/// The range of component `n` is `[0, 92]`.
-	fn take_first_concatenated_xcm(n: u32, ) -> Weight {
+	fn take_first_concatenated_xcm() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
-		// Minimum execution time: 5_050_000 picoseconds.
-		Weight::from_parts(5_270_000, 0)
-		// Standard Error: 564
-			.saturating_add(Weight::from_parts(44_073, 0).saturating_mul(n.into()))
+		// Minimum execution time: 6_000_000 picoseconds.
+		Weight::from_parts(7_000_000, 0)
 	}
 	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
 	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
