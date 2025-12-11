@@ -1135,7 +1135,7 @@ parameter_types! {
 	pub const DepositPerByte: Balance = deposit(0, 1);
 	pub const DepositPerChildTrieItem: Balance = deposit(1, 0) / 100;
 	pub CodeHashLockupDepositPercent: Perbill = Perbill::from_percent(30);
-	pub const MaxEthExtrinsicWeight: FixedU128 = FixedU128::from_rational(1,2);
+	pub const MaxEthExtrinsicWeight: FixedU128 = FixedU128::from_rational(9,10);
 }
 
 impl pallet_revive::Config for Runtime {
@@ -1169,7 +1169,7 @@ impl pallet_revive::Config for Runtime {
 		XcmPrecompile<Self>,
 	);
 	type AllowEVMBytecode = ConstBool<true>;
-    type GasScale = ConstU32<50000>;
+	type GasScale = ConstU32<100_000>;
 }
 
 parameter_types! {
